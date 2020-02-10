@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 namespace CycleTimer.Data
 {
-    public class CycleTimer
+    public class CycleMetric
     {
+        public bool IsPlaying { get; set; }
+
         public int CurrentCount { get; set;}
         public TimeSpan CurrentTime { get; set; }
 

@@ -1,5 +1,403 @@
 ﻿@page "/"
+@using Data;
+@using System.Threading;
 
-<h1>Hello, world!</h1>
+<div>
+    <h2>Current Time: @CycleMetric.CurrentTime</h2>
 
-Welcome to your new app.
+    <hr />
+
+    <h2>Cycles: @Cycles.ToString()</h2>
+</div>
+
+@code {
+
+    private CycleMetric CycleMetric;
+    private List<Cycle> Cycles;
+
+
+    //Useful Items
+    private Timer Timer;
+    public TimeSpan TimerInterval => new TimeSpan(0, 0, 1);
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.CycleMetric = new CycleMetric();
+        Cycles = new List<Cycle>();
+
+        //for testing
+        CycleMetric.IsPlaying = true;
+        StartTimer();
+    }
+
+    private void KeyPress(KeyboardEventArgs args)
+    {
+        if (args.Code == "Numpad8")
+        {
+            ItemFinished();
+        }
+        else if (args.Code == "Numpad5")
+        {
+            PlayPauseTimer();
+        }
+        //if (args.Code == "Numpad1")
+        //{
+        //    CriticalIssue();
+        //}
+        //if (args.Code == "Numpad2")
+        //{
+        //    MaterialIssue();
+        //}
+        //if (args.Code == "Numpad3")
+        //{
+        //    TechnicalIssue();
+        //}
+    }
+
+    private void ItemFinished()
+    {
+        Cycles.Add(CycleMetric.CurrentCycle);
+        CycleMetric.CurrentCycle = new Cycle();
+        CycleMetric.CurrentCount++;
+    }
+
+    private void PlayPauseTimer()
+    {
+        if (CycleMetric.IsPlaying)
+        {
+            CycleMetric.IsPlaying = false;
+        }
+        else
+        {
+            CycleMetric.IsPlaying = true;
+        }
+    }
+
+    private void StartTimer()
+    {
+        Timer = new Timer(new TimerCallback(_ =>
+        {
+            if(CycleMetric.IsPlaying)
+            {
+                CycleMetric.CurrentCycle.CycleTime = CycleMetric.CurrentCycle.CycleTime.Add(TimerInterval);
+            }
+
+            CycleMetric.CurrentTime = CycleMetric.CurrentTime.Add(TimerInterval);
+
+            InvokeAsync(() =>
+            {
+                StateHasChanged();
+            });
+
+        }), null, (int)TimerInterval.TotalMilliseconds, (int)TimerInterval.TotalMilliseconds);
+    }
+
+
+    //private string ModalButtonVisibility { get; set; }
+
+    //private string TaktColor { get; set; }
+
+    //private string CriticalIssueBackGroundColor { get; set; }
+    //private string MaterialIssueBackGroundColor { get; set; }
+    //private string TechnicalIssueBackGroundColor { get; set; }
+
+    //private string HealthBackgroundColor { get; set; }
+
+    //public TimeSpan TimerInterval => new TimeSpan(0, 0, 1);
+
+    ////Metrics for tracking current information
+    //private TaktMetric TaktMetric { get; set; }
+    //private GoalMetric GoalMetric { get; set; }
+    //private IssueMetric IssueMetric { get; set; }
+    //private HealthMetrics HealthMetrics { get; set; }
+    //private LineConfig LineConfig { get; set; }
+
+    ////Used for the timer and to track current timer state
+    //private Timer Timer;
+    //private bool CurrentTimerState = false;  //0 = paused or off, 1 = running
+
+    ////Used to track the lines current state ie: running, technical issue
+    //private Production.Scheduling.SinglePieceFlow.Station Station = new Production.Scheduling.SinglePieceFlow.Station(1, "default");
+    //Production.Scheduling.SinglePieceFlow ProductionLine = new Production.Scheduling.SinglePieceFlow(null);
+
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    //Housekeeping
+    //    TaktMetric = new TaktMetric();
+    //    GoalMetric = new GoalMetric();
+    //    IssueMetric = new IssueMetric();
+    //    HealthMetrics = new HealthMetrics();
+    //    LineConfig = new LineConfig();
+
+    //    StartTimer();
+
+    //    HealthMetrics.CurrentHealth = HealthMetrics.Health.NotEnoughData;
+
+    //    //Setup variables
+    //    TaktMetric.CurrentTaktTime = TaktMetric.TotalTaktTime;
+
+    //    CriticalIssueBackGroundColor = "#cccccc";
+    //    MaterialIssueBackGroundColor = "#cccccc";
+    //    TechnicalIssueBackGroundColor = "#cccccc";
+
+    //    HealthBackgroundColor = "#cccccc";
+
+    //    TaktColor = "#cccccc";
+
+    //    ModalButtonVisibility = "visible";
+
+    //    //Instantiate a station
+    //    var Stations = new List<Production.Scheduling.SinglePieceFlow.Station>();
+    //    Stations.Add(Station);
+    //    ProductionLine.Stations = Stations;
+
+    //    //Open and reset the andon light
+    //    //SignalTower.OpenConnection();
+    //    //SignalTower.Reset();
+    //}
+
+    ////MODAL
+    //private void SubmitLineConfig()
+    //{
+    //    TaktMetric.TotalTaktTime = TimeSpan.Parse(LineConfig.inputTaktTime);
+    //    GoalMetric.TotalTime = TimeSpan.Parse(LineConfig.inputGoalTime);
+
+    //    TaktMetric.CurrentTaktTime = TaktMetric.TotalTaktTime;
+
+    //    GoalMetric.CalculateItemGoal(TaktMetric.TotalTaktTime);
+
+    //    CloseModal();
+    //}
+
+    //public void PopulateLineConfig()
+    //{
+    //    LineConfig.TaktMetric = TaktMetric;
+    //    LineConfig.GoalMetric = GoalMetric;
+    //}
+
+    //public String ToggleModal { get; set; } = "none";
+
+    //public void OpenModal()
+    //{
+    //    if (CurrentTimerState)
+    //    {
+    //        PlayPauseTimer();
+    //    }
+    //    PopulateLineConfig();
+    //    ModalButtonVisibility = "none";
+    //    ToggleModal = "initial";
+    //}
+
+    //public void CloseModal()
+    //{
+    //    ModalButtonVisibility = "visible";
+    //    ToggleModal = "none";
+    //}
+
+    ////INPUT
+
+    //private void KeyWasPressed(KeyboardEventArgs args)
+    //{
+    //    if (ToggleModal != "initial")
+    //    {
+    //        if (args.Code == "Numpad8")
+    //        {
+    //            ItemCompleted();
+    //        }
+    //        if (args.Code == "Numpad5")
+    //        {
+    //            PlayPauseTimer();
+    //        }
+    //        if (args.Code == "Numpad1")
+    //        {
+    //            CriticalIssue();
+    //        }
+    //        if (args.Code == "Numpad2")
+    //        {
+    //            MaterialIssue();
+    //        }
+    //        if (args.Code == "Numpad3")
+    //        {
+    //            TechnicalIssue();
+    //        }
+    //    }
+    //}
+
+
+    //private void PlayPauseTimer()
+    //{
+    //    if (CurrentTimerState)
+    //    {
+    //        CurrentTimerState = false;
+    //    }
+    //    else
+    //    {
+    //        CurrentTimerState = true;
+    //    }
+    //}
+
+    //private void ItemCompleted()
+    //{
+    //    TaktMetric.CurrentTaktTime = TaktMetric.TotalTaktTime;
+    //    TaktMetric.CurrentCount++;
+    //    TaktMetric.CurrentDownTime = new TimeSpan();
+    //    UpdateHealth();
+    //}
+
+    //private void UpdateHealth()
+    //{
+    //    HealthMetrics.CalculateCurrentHealth(GoalMetric.ItemsPerHour, TaktMetric.CurrentCount, TaktMetric.TotalRunningTaktTime, (int)GoalMetric.TotalItemGoal);
+    //    if (HealthMetrics.CurrentHealth == HealthMetrics.Health.NotEnoughData)
+    //    {
+    //        HealthBackgroundColor = "#cccccc";
+    //    }
+    //    else if (HealthMetrics.CurrentHealth == HealthMetrics.Health.Ahead)
+    //    {
+    //        HealthBackgroundColor = "#00ff00";
+    //    }
+    //    else if (HealthMetrics.CurrentHealth == HealthMetrics.Health.Behind)
+    //    {
+    //        HealthBackgroundColor = "#ff4c4c";
+    //    }
+    //    else
+    //    {
+    //        HealthBackgroundColor = "#ffff00";
+    //    }
+    //}
+
+    //private void CriticalIssue()
+    //{
+    //    if (Station.HasIssue(Production.Scheduling.SinglePieceFlow.Issue.Fatal))
+    //    {
+    //        Station.RemoveIssue(Production.Scheduling.SinglePieceFlow.Issue.Fatal);
+    //        //SignalTower.ClearFatalIssue();
+    //        CriticalIssueBackGroundColor = "#cccccc";
+    //        IssueMetric.CurrentCriticalIssueDownTime = new TimeSpan();
+    //    }
+    //    else
+    //    {
+    //        IssueMetric.CriticalIssueCount++;
+    //        Station.AddIssue(Production.Scheduling.SinglePieceFlow.Issue.Fatal);
+    //        //SignalTower.StationStop(true);
+    //        CriticalIssueBackGroundColor = "#ff4c4c";
+    //    }
+    //}
+
+    //private void TechnicalIssue()
+    //{
+    //    if (Station.HasIssue(Production.Scheduling.SinglePieceFlow.Issue.Technical))
+    //    {
+    //        Station.RemoveIssue(Production.Scheduling.SinglePieceFlow.Issue.Technical);
+    //        //SignalTower.TechnicalIssueResolved();
+    //        TechnicalIssueBackGroundColor = "#cccccc";
+    //        IssueMetric.CurrentTechnicalIssueDownTime = new TimeSpan();
+    //    }
+    //    else
+    //    {
+    //        IssueMetric.TechnicalIssueCount++;
+    //        Station.AddIssue(Production.Scheduling.SinglePieceFlow.Issue.Technical);
+    //        //SignalTower.TechnicalIssue();
+    //        TechnicalIssueBackGroundColor = "#ffbd4c";
+    //    }
+    //}
+
+    //private void MaterialIssue()
+    //{
+    //    if (Station.HasIssue(Production.Scheduling.SinglePieceFlow.Issue.Material))
+    //    {
+    //        Station.RemoveIssue(Production.Scheduling.SinglePieceFlow.Issue.Material);
+    //        //SignalTower.MaterialIssueResolved();
+    //        MaterialIssueBackGroundColor = "#cccccc";
+    //        IssueMetric.CurrentMaterialIssueDownTime = new TimeSpan();
+    //    }
+    //    else
+    //    {
+    //        IssueMetric.MaterialIssueCount++;
+    //        Station.AddIssue(Production.Scheduling.SinglePieceFlow.Issue.Material);
+    //        //SignalTower.MaterialIssue();
+    //        MaterialIssueBackGroundColor = "#4c7cff";
+    //    }
+    //}
+
+    //private void Reset()
+    //{
+    //    CurrentTimerState = false;
+    //    Timer.Dispose();
+    //    OnInitializedAsync();
+
+    //    Station.RemoveIssue(Production.Scheduling.SinglePieceFlow.Issue.Material);
+    //    Station.RemoveIssue(Production.Scheduling.SinglePieceFlow.Issue.Fatal);
+    //    Station.RemoveIssue(Production.Scheduling.SinglePieceFlow.Issue.Technical);
+    //}
+
+    //private void StartTimer()
+    //{
+    //    Timer = new Timer(new TimerCallback(_ =>
+    //    {
+    //        if (CurrentTimerState)
+    //        {
+    //            if (Station.HasIssue(Production.Scheduling.SinglePieceFlow.Issue.Fatal))
+    //            {
+    //                IssueMetric.CriticalIssueDownTime = IssueMetric.CriticalIssueDownTime.Add(TimerInterval);
+    //                IssueMetric.CurrentCriticalIssueDownTime = IssueMetric.CurrentCriticalIssueDownTime.Add(TimerInterval);
+    //                TaktColor = "#ff4c4c";
+    //            }
+
+    //            else if (TaktMetric.CurrentTaktTime.TotalSeconds == 0)
+    //            {
+    //            //SignalTower.StationRampUp();
+
+    //            if (TaktMetric.CurrentDownTime.TotalSeconds <= 28)
+    //                {
+    //                    TaktColor = "#e9ff4c";
+    //                }
+    //                else
+    //                {
+    //                    TaktColor = "#ff4c4c";
+    //                }
+
+    //                TaktMetric.CurrentDownTime = TaktMetric.CurrentDownTime.Add(TimerInterval);
+    //                TaktMetric.TotalDownTime = TaktMetric.TotalDownTime.Add(TimerInterval);
+    //            }
+
+    //            else
+    //            {
+    //            //SignalTower.StationActive();
+    //            TaktColor = "#00ff00";
+    //                TaktMetric.CurrentTaktTime = TaktMetric.CurrentTaktTime.Subtract(TimerInterval);
+    //            }
+
+    //            if (Station.HasIssue(Production.Scheduling.SinglePieceFlow.Issue.Technical))
+    //            {
+    //                IssueMetric.TechnicalIssueDownTime = IssueMetric.TechnicalIssueDownTime.Add(TimerInterval);
+    //                IssueMetric.CurrentTechnicalIssueDownTime = IssueMetric.CurrentTechnicalIssueDownTime.Add(TimerInterval);
+    //            }
+    //            if (Station.HasIssue(Production.Scheduling.SinglePieceFlow.Issue.Material))
+    //            {
+    //                IssueMetric.MaterialIssueDownTime = IssueMetric.MaterialIssueDownTime.Add(TimerInterval);
+    //                IssueMetric.CurrentMaterialIssueDownTime = IssueMetric.CurrentMaterialIssueDownTime.Add(TimerInterval);
+    //            }
+
+    //            TaktMetric.TotalRunningTaktTime = TaktMetric.TotalRunningTaktTime.Add(TimerInterval);
+
+    //            GoalMetric.CalculateRemainingTime(TaktMetric.TotalRunningTaktTime);
+
+    //            if (TaktMetric.TotalRunningTaktTime.TotalSeconds % 10 == 0)
+    //            {
+    //                UpdateHealth();
+    //            }
+    //        }
+
+    //        else
+    //        {
+    //            TaktColor = "#cccccc";
+    //        }
+
+    //        InvokeAsync(() =>
+    //        {
+    //            StateHasChanged();
+    //        });
+
+    //    }), null, (int)TimerInterval.TotalMilliseconds, (int)TimerInterval.TotalMilliseconds);
+    //}
+}
